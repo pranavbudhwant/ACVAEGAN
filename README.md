@@ -12,8 +12,8 @@ A novel approach of imposing a condition on VAEGAN through the use of an auxilia
   3. Generate paintings conditioned on style (contemporary, modern, renaissance, ..)
   
 ## Plan
-- Prepare dataset for the three approaches
-  - CSV files containing (image-id, emotion); (image-id, category); (image-id, style)
+- ~Prepare dataset for the three approaches~
+  - ~CSV files containing (image-id, emotion); (image-id, category); (image-id, style)~
 - Auxiliary Classifier Architecture
   - Multilabel Classifier/Multiclass Classifier?
 - Keras, Pytorch implementation
