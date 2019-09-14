@@ -6,7 +6,7 @@ from encoder import EncoderBlock
 
 
 class Discriminator(nn.Module):
-    def __init__(self, channels_in=3, recon_level=3):
+    def __init__(self, channels_in=3, recon_level=3, num_classes=10):
         super(Discriminator, self).__init__()
         self.size = channels_in
         self.recon_level = recon_level
@@ -30,9 +30,10 @@ class Discriminator(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(in_features=8 * 8 * self.size, out_features=512, bias=False),
             nn.BatchNorm1d(num_features=512, momentum=0.9),
-            nn.ReLU(inplace=True),
-            nn.Linear(in_features=512, out_features=1)
+            nn.ReLU(inplace=True)
         )
+        self.fc_disc = nn.Linear(in_features=512, out_features=1)
+        self.fc_aux = nn.Linear(in_features=512, out_features=num_classes)
 
     def forward(self, ten, other_ten, mode='REC'):
         ten = torch.cat((ten, other_ten), 0)
@@ -53,7 +54,10 @@ class Discriminator(nn.Module):
 
             ten = ten.view(len(ten), -1)
             ten = self.fc(ten)
-            return F.sigmoid(ten)
+            ten_disc = self.fc_disc(ten)
+            ten_aux = self.fc_aux(ten)
+            x = nn.NLLLoss()
+            return F.sigmoid(ten_disc), F.softmax(ten_aux)
 
     def __call__(self, *args, **kwargs):
         return super(Discriminator, self).__call__(*args, **kwargs)

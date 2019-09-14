@@ -61,9 +61,9 @@ class VAEGAN(nn.Module):
             ten_from_normal = Variable(torch.randn(len(ten), self.z_size).cuda(), requires_grad=True)
 
             ten = self.decoder(ten_from_normal)
-            ten_class = self.discriminator(ten_original, ten, model='GAN')
+            ten_real_fake, ten_aux = self.discriminator(ten_original, ten, mode='GAN')
 
-            return ten, ten_class, ten_layer, mu, log_variances
+            return ten, ten_real_fake, ten_layer, mu, log_variances, ten_aux
         else:
             if ten is None:
                 # just sample and decode
@@ -88,7 +88,7 @@ class VAEGAN(nn.Module):
 
     @staticmethod
     def loss(ten_original, ten_predict, layer_original, layer_predicted, labels_original, labels_sampled,
-             mu, variances):
+             mu, variances, aux_labels_original, aux_labels_predicted):
         """
         :param ten_original: original images
         :param ten_predict: predicted images (decode ouput)
@@ -98,6 +98,8 @@ class VAEGAN(nn.Module):
         :param labels_sampled: labels for sampled from gaussian (0,1) (output of the discriminator)
         :param mu: means
         :param variances: tensor of diagonals of log_variances
+        :param aux_labels_original: tensor of diagonals of log_variances
+        :param aux_labels_predicted: tensor of diagonals of log_variances
         :return:
         """
 
@@ -119,6 +121,8 @@ class VAEGAN(nn.Module):
         bce_gen_original = -torch.log(1 - labels_original + 1e3)
         bce_gen_sampled = -torch.log(labels_sampled + 1e3)
 
+        nllloss_aux = nn.NLLLoss(aux_labels_predicted, aux_labels_original)
+
         '''
         bce_gen_predicted = nn.BCEWithLogitsLoss(size_average=False)(labels_predicted,
                                          Variable(torch.ones_like(labels_predicted.data).cuda(), requires_grad=False))
@@ -132,5 +136,5 @@ class VAEGAN(nn.Module):
                                        Variable(torch.zeros_like(labels_sampled.data).cuda(), requires_grad=False))
         '''
 
-        return nle, kl, mse, bce_dis_original, bce_dis_sampled, bce_gen_original, bce_gen_sampled
+        return nle, kl, mse, bce_dis_original, bce_dis_sampled, bce_gen_original, bce_gen_sampled, nllloss_aux
 
