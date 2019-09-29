@@ -20,6 +20,7 @@ class VAEGAN(nn.Module):
         self.discriminator = Discriminator(channels_in=3, recon_level=recon_level)
 
         # initialize self defined params
+        training = True
         self.init_parameters()
 
     def init_parameters(self):
@@ -40,8 +41,10 @@ class VAEGAN(nn.Module):
         if self.training:
             # save original images
             ten_original = ten
+
             # encode
             mu, log_variances = self.encoder(ten)
+
             # we need true variance not log
             variances = torch.exp(log_variances * 0.5)
 
@@ -88,7 +91,7 @@ class VAEGAN(nn.Module):
 
     @staticmethod
     def loss(ten_original, ten_predict, layer_original, layer_predicted, labels_original, labels_sampled,
-             mu, variances, aux_labels_original, aux_labels_predicted):
+             mu, variances, aux_labels_predicted, aux_labels_sampled, aux_labels_original):
         """
         :param ten_original: original images
         :param ten_predict: predicted images (decode ouput)
@@ -110,18 +113,20 @@ class VAEGAN(nn.Module):
         kl = -0.5 * torch.sum(-variances.exp() - torch.pow(mu, 2) + variances + 1, 1)
 
         # mse between intermediate layers
-        mse = torch.sum(0.5 * (layer_original - layer_predicted) ** 2, 1)
+        mse = torch.sum((layer_original - layer_predicted) ** 2, 1)
 
         # BCE for decoder & discriminator for original, sampled & reconstructed
         # the only excluded is the bce_gen original
 
-        bce_dis_original = -torch.log(labels_original + 1e3)
-        bce_dis_sampled = -torch.log(1 - labels_sampled + 1e3)
+        bce_dis_original = -torch.log(labels_original)
+        bce_dis_sampled = -torch.log(1 - labels_sampled)
 
-        bce_gen_original = -torch.log(1 - labels_original + 1e3)
-        bce_gen_sampled = -torch.log(labels_sampled + 1e3)
+        bce_gen_original = -torch.log(1 - labels_original)
+        bce_gen_sampled = -torch.log(labels_sampled)
 
-        nllloss_aux = nn.NLLLoss(aux_labels_predicted, aux_labels_original)
+        aux_criteron = nn.NLLLoss()
+        nllloss_aux_original = aux_criteron(aux_labels_predicted, aux_labels_original)
+        nllloss_aux_sampled = aux_criteron(aux_labels_sampled, aux_labels_original)
 
         '''
         bce_gen_predicted = nn.BCEWithLogitsLoss(size_average=False)(labels_predicted,
@@ -136,5 +141,5 @@ class VAEGAN(nn.Module):
                                        Variable(torch.zeros_like(labels_sampled.data).cuda(), requires_grad=False))
         '''
 
-        return nle, kl, mse, bce_dis_original, bce_dis_sampled, bce_gen_original, bce_gen_sampled, nllloss_aux
-
+        return nle, kl, mse, bce_dis_original, bce_dis_sampled, bce_gen_original, bce_gen_sampled,\
+            nllloss_aux_original, nllloss_aux_sampled

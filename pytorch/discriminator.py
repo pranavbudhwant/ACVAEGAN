@@ -56,8 +56,7 @@ class Discriminator(nn.Module):
             ten = self.fc(ten)
             ten_disc = self.fc_disc(ten)
             ten_aux = self.fc_aux(ten)
-            x = nn.NLLLoss()
-            return F.sigmoid(ten_disc), F.softmax(ten_aux)
+            return F.sigmoid(ten_disc), F.log_softmax(ten_aux)
 
     def __call__(self, *args, **kwargs):
         return super(Discriminator, self).__call__(*args, **kwargs)
