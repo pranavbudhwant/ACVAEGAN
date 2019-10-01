@@ -20,7 +20,6 @@ class VAEGAN(nn.Module):
         self.discriminator = Discriminator(channels_in=3, recon_level=recon_level)
 
         # initialize self defined params
-        training = True
         self.init_parameters()
 
     def init_parameters(self):

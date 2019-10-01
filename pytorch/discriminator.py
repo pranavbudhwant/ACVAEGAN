@@ -36,8 +36,8 @@ class Discriminator(nn.Module):
         self.fc_aux = nn.Linear(in_features=512, out_features=num_classes)
 
     def forward(self, ten, other_ten, mode='REC'):
-        ten = torch.cat((ten, other_ten), 0)
         if mode == 'REC':
+            ten = torch.cat((ten, other_ten), 0)
             for i, layer in enumerate(self.conv):
                 # take 9th layer as one of the outputs
                 if i == self.recon_level:
@@ -49,6 +49,7 @@ class Discriminator(nn.Module):
                 else:
                     ten = layer(ten)
         else:
+            ten = torch.cat((ten, other_ten), 0)
             for i, layer in enumerate(self.conv):
                 ten = layer(ten)
 

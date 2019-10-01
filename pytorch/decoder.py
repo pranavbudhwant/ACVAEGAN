@@ -19,7 +19,7 @@ class DecoderBlock(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, z_size, size):
+    def __init__(self, z_size, size=3):
         super(Decoder, self).__init__()
 
         # start from B * z_size

@@ -35,6 +35,7 @@ if __name__ == "__main__":
     parser.add_argument("--decay_equilibrium", default=1, action="store", type=float, dest="decay_equilibrium")
     parser.add_argument("--slurm", default=False, action="store", type=bool, dest="slurm")
     parser.add_argument("--batchsize", default=64, action="store", type=int, dest="batchsize")
+    parser.add_argument("--dataset_name", default="cifar10", action="store", type=str, dest="dataset_name")
 
     args = parser.parse_args()
 
@@ -51,9 +52,7 @@ if __name__ == "__main__":
     decay_equilibrium = args.decay_equilibrium
     slurm = args.slurm
     batchsize = args.batchsize
-
-    # TODO: add to argument parser
-    dataset_name = 'cifar10'
+    dataset_name = args.dataset_name
 
     writer = SummaryWriter(comment="_CIFAR10_GAN")
     net = VAEGAN(z_size=z_size, recon_level=recon_level).cuda()
@@ -75,6 +74,7 @@ if __name__ == "__main__":
     equilibrium = 0.68
 
     # mse_lambda = 1.0
+
     # OPTIM-LOSS
     # an optimizer for each of the sub-networks, so we can selectively backprop
     # optimizer_encoder = Adam(params=net.encoder.parameters(),lr = lr,betas=(0.9,0.999))
